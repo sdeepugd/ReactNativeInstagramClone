@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import {getAuth, signInWithEmailAndPassword} from 'firebase/auth'
 
 import {Formik} from 'formik';
 import React from 'react';
@@ -21,14 +22,16 @@ const LoginForm = ({navigation}) => {
     email: Yup.string().email().required('An email is required'),
     password: Yup.string()
       .required()
-      .min(8, 'Your password has to have at least 8 chars'),
+      .min(7, 'Your password has to have at least 8 chars'),
   });
 
-const onLogin= async (email,password) =>{
+const onLogin = async (email,password) =>{
   try{
-    await firebase.auth().signInWithEamilAndPassword(email,password)
+    const auth = getAuth()
+    await signInWithEmailAndPassword(auth,email,password)
     console.log('FireBase login Successful')
   } catch(error){
+    console.log('FireBase login UnSuccessful')
     Alert.alert(error.message)
   }
 }
@@ -38,7 +41,7 @@ const onLogin= async (email,password) =>{
       <Formik
         initialValues={{email: '', password: ''}}
         onSubmit={values => {
-          console.log(values);
+          onLogin(values.email,values.password)
         }}
         validationSchema={LoginFormSchema}
         validateOnMount={true}>
@@ -76,7 +79,6 @@ const onLogin= async (email,password) =>{
             <Pressable
               titleSize={20}
               style={styles.button(isValid)}
-              onPress={() => console.log('You Clicked Me')}
               onPress={handleSubmit}
               >
               <Text style={styles.buttonText}>Log In</Text>

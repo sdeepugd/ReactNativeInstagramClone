@@ -1,14 +1,17 @@
 import * as Yup from 'yup';
 
 import {
+  Alert,
   Button,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import {addDoc, collection, getFirestore} from 'firebase/firestore'
+import { createUserWithEmailAndPassword, getAuth } from '@firebase/auth';
 
 import {Formik} from 'formik';
 import React from 'react';
@@ -24,12 +27,27 @@ const SignupForm = ({navigation}) => {
           .min(8, 'Your password has to have at least 8 chars'),
       });
 
+      const onSignUp = async (email,password,username) =>{
+        try{
+          const auth = getAuth()
+          await createUserWithEmailAndPassword(auth,email,password)
+          const db = getFirestore()
+          await addDoc(collection(db,'users'),{
+            ownerid:auth.currentUser.uid,
+            username:username
+          })
+        } catch(error){
+          console.log('FireBase login UnSuccessful')
+          Alert.alert(error.message)
+        }
+      }
+
       return (
         <View style={styles.wrapper}>
           <Formik
-            initialValues={{email: '', password: ''}}
+            initialValues={{email: '', password: '',userName:''}}
             onSubmit={values => {
-              console.log(values);
+                onSignUp(values.email,values.password,values.userName)
             }}
             validationSchema={SignupFormSchema}
             validateOnMount={true}>
